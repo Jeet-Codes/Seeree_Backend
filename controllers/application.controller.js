@@ -128,3 +128,16 @@ export const updateStatus = async (req,res) => {
         console.log(error);
     }
 }
+export const deleteApplicant=async (req, res) => {
+    try {
+        const applicantId = req.params.id;
+        const application = await Application.findByIdAndDelete(applicantId);
+        if (!application) {
+            return res.status(404).json({ message: "Applicant not found", success: false });
+        }
+        res.status(200).json({ message: "Applicant deleted successfully", success: true });
+    } catch (error) {
+        console.error("Error deleting applicant:", error);
+        res.status(500).json({ message: "Internal server error", success: false });
+    }
+}

@@ -16,9 +16,9 @@ const jobSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    experienceLevel:{
-        type:Number,
-        required:true,
+    experienceLevel: {
+        type: Number,
+        required: true,
     },
     location: {
         type: String,
@@ -48,5 +48,14 @@ const jobSchema = new mongoose.Schema({
             ref: 'Application',
         }
     ]
-},{timestamps:true});
+}, { timestamps: true });
+jobSchema.pre('remove', async function(next) {
+    try {
+        await mongoose.model('Application').deleteMany({ _id: { $in: this.applications } });
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
 export const Job = mongoose.model("Job", jobSchema);

@@ -3,38 +3,45 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
-
 export const register = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, password, role } = req.body;
-         
+
         if (!fullname || !email || !phoneNumber || !password || !role) {
             return res.status(400).json({
                 message: "Something is missing",
                 success: false
             });
-        };
-        const file = req.file;
-        const fileUri = getDataUri(file);
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        }
 
         const user = await User.findOne({ email });
         if (user) {
             return res.status(400).json({
-                message: 'User already exist with this email.',
+                message: 'User already exists with this email.',
                 success: false,
-            })
+            });
+        }
+
+        // Check if a file is provided
+        let profilePhotoUrl = null;
+        const file = req.file;
+        if (file) {
+            const fileUri = getDataUri(file);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+            profilePhotoUrl = cloudResponse.secure_url; 
+        } else {
+           
+            profilePhotoUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5jifLXKb2qo_5aXh54USNlvxI34oPpG3zTw&s";
         }
         const hashedPassword = await bcrypt.hash(password, 10);
-
         await User.create({
             fullname,
             email,
             phoneNumber,
             password: hashedPassword,
             role,
-            profile:{
-                profilePhoto:cloudResponse.secure_url,
+            profile: {
+                profilePhoto: profilePhotoUrl,
             }
         });
 
@@ -44,8 +51,13 @@ export const register = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }
+
 export const login = async (req, res) => {
     try {
         const { email, password, role } = req.body;
@@ -92,10 +104,7 @@ export const login = async (req, res) => {
             profile: user.profile
         }
 
-        console.log(token+" Token is Generated")
-
-
-        return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, secure: true, sameSite: 'None' }).json({
+        return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true,  secure : true,sameSite: 'None' }).json({
             message: `Welcome back ${user.fullname}`,
             user,
             success: true
