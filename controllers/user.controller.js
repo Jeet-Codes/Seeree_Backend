@@ -314,7 +314,8 @@ export const login = async (req, res) => {
             profile: user.profile
         }
 
-        console.log("Token is "+token)
+        // Testing Token Generation 
+        // console.log("Token is "+token)
 
         return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true,  secure : true,sameSite: 'None' }).json({
             message: `Welcome back ${user.fullname}`,
