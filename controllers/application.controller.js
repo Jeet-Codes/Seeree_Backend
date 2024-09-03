@@ -171,39 +171,113 @@ export const getApplicants = async (req,res) => {
         console.log(error);
     }
 }
-export const updateStatus = async (req,res) => {
+export const updateStatus = async (req, res) => {
     try {
-        const {status} = req.body;
+        const { status } = req.body;
         const applicationId = req.params.id;
-        if(!status){
+
+        if (!status) {
             return res.status(400).json({
-                message:'status is required',
-                success:false
-            })
-        };
+                message: 'Status is required',
+                success: false
+            });
+        }
 
-        // find the application by applicantion id
-        const application = await Application.findOne({_id:applicationId});
-        if(!application){
+        // Find the application by application id
+        const application = await Application.findOne({ _id: applicationId }).populate('applicant job');
+        if (!application) {
             return res.status(404).json({
-                message:"Application not found.",
-                success:false
-            })
-        };
+                message: "Application not found.",
+                success: false
+            });
+        }
 
-        // update the status
+        // Update the status
         application.status = status.toLowerCase();
         await application.save();
 
+        // Send email notification
+        const user = application.applicant;
+        const job = application.job;
+        console.log(job);
+        
+
+        const emailContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    margin: 0;
+                    padding: 0;
+                }
+                .container {
+                    width: 100%;
+                    max-width: 600px;
+                    margin: auto;
+                    background-color: #ffffff;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
+                .header {
+                    background-color: ${status.toLowerCase() === 'accepted' ? '#4CAF50' : '#FF0000'};
+                    color: #ffffff;
+                    padding: 10px 20px;
+                    text-align: center;
+                    font-size: 24px;
+                }
+                .content {
+                    padding: 20px;
+                    text-align: left;
+                }
+                .footer {
+                    background-color: #f1f1f1;
+                    padding: 10px 20px;
+                    text-align: center;
+                    font-size: 12px;
+                    color: #555555;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    ${status === 'Accepted' ? 'Application Accepted' : 'Application Rejected'}
+                </div>
+                <div class="content">
+                    <p>Dear ${user.fullname},</p>
+                    <p>We have reviewed your application for the <strong>${job.title}</strong> position at <strong>${job.company.name}</strong>.</p>
+                    <p>We are ${status.toLowerCase() === 'accepted' ? 'pleased' : 'sorry'} to inform you that your application has been <strong>${status.toLowerCase()}</strong>.</p>
+                    ${status.toLowerCase() === 'accepted' 
+                        ? <p>Congratulations! Our team will be in touch with you shortly for the next steps in the hiring process.</p>
+                        : <p>We appreciate the time and effort you put into applying, but unfortunately, we will not be moving forward with your application at this time. We encourage you to apply for other openings in the future.</p>
+                    }
+                    <p>Best regards,<br/>The Seeree Team</p>
+                </div>
+                <div class="footer">
+                    <p>&copy; ${new Date().getFullYear()} ${job.company.name}. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        `;
+
+        await sendEmail(user.email, `Your Application for ${job.title} has been ${status}`, emailContent);
+
         return res.status(200).json({
-            message:"Status updated successfully.",
-            success:true
+            message: "Status updated successfully and email sent.",
+            success: true
         });
 
     } catch (error) {
         console.log(error);
+        res.status(500).json({ message: 'Internal server error', success: false });
     }
-}
+};
+
 export const deleteApplicant=async (req, res) => {
     try {
         const applicantId = req.params.id;
