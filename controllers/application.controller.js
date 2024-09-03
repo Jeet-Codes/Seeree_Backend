@@ -252,8 +252,8 @@ export const updateStatus = async (req, res) => {
                     <p>We have reviewed your application for the <strong>${job.title}</strong> position at <strong>${job.company.name}</strong>.</p>
                     <p>We are ${status.toLowerCase() === 'accepted' ? 'pleased' : 'sorry'} to inform you that your application has been <strong>${status.toLowerCase()}</strong>.</p>
                     ${status.toLowerCase() === 'accepted' 
-                        ? <p>Congratulations! Our team will be in touch with you shortly for the next steps in the hiring process.</p>
-                        : <p>We appreciate the time and effort you put into applying, but unfortunately, we will not be moving forward with your application at this time. We encourage you to apply for other openings in the future.</p>
+                        ? `<p>Congratulations! Our team will be in touch with you shortly for the next steps in the hiring process.</p>`
+                        : `<p>We appreciate the time and effort you put into applying, but unfortunately, we will not be moving forward with your application at this time. We encourage you to apply for other openings in the future.</p>`
                     }
                     <p>Best regards,<br/>The Seeree Team</p>
                 </div>
