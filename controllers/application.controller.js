@@ -223,7 +223,7 @@ export const updateStatus = async (req, res) => {
                     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
                 }
                 .header {
-                    background-color: ${status.toLowerCase() === 'accepted' ? '#4CAF50' : '#FF0000'};
+                    background-color: ${status.toLowerCase() === 'accepted' ? '#4CAF50' : '#FBD288'};
                     color: #ffffff;
                     padding: 10px 20px;
                     text-align: center;
@@ -265,8 +265,7 @@ export const updateStatus = async (req, res) => {
         </html>
         `;
 
-        await sendEmail(user.email, `Your Application for ${job.title} has been ${status}`, emailContent);
-
+        await sendEmail(user.email, `Update on Your Application for ${job.title} has been ${status}`, emailContent);
         return res.status(200).json({
             message: "Status updated successfully and email sent.",
             success: true
